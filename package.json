@@ -1,0 +1,19 @@
+{
+  "name": "boss-zhipin-assistant",
+  "version": "1.0.0",
+  "description": "BOSS直聘招聘助手 - 智能匹配简历与岗位JD",
+  "main": "background.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "chrome-extension",
+    "boss",
+    "zhipin",
+    "recruitment",
+    "ai",
+    "resume"
+  ],
+  "author": "",
+  "license": "MIT"
+}

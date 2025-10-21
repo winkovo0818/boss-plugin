@@ -1,0 +1,515 @@
+/* BOSS直聘招聘助手 - 样式表 */
+
+/* 基础重置和全局样式 */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  width: 680px;
+  min-height: 500px;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  background-color: #f9fafb;
+  color: #111827;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* 工具类 */
+.hidden {
+  display: none !important;
+}
+
+/* 渐变背景 */
+.gradient-header {
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  color: white;
+  padding: 16px;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.gradient-header h1 {
+  font-size: 20px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.gradient-header p {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.9);
+  margin-top: 4px;
+}
+
+.settings-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 8px;
+  padding: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.settings-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
+}
+
+.settings-btn svg {
+  display: block;
+}
+
+/* 图标 */
+.icon {
+  width: 24px;
+  height: 24px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.icon-sm {
+  width: 16px;
+  height: 16px;
+}
+
+/* 容器 */
+.container {
+  padding: 16px;
+}
+
+/* 卡片 */
+.card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 简历状态 */
+.resume-status {
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+}
+
+.resume-status-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #16a34a;
+  font-size: 13px;
+}
+
+.resume-status-content svg {
+  flex-shrink: 0;
+}
+
+/* 未上传简历提示 */
+.no-resume-hint {
+  background: #fef3c7;
+  border: 1px solid #fbbf24;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #92400e;
+  font-size: 13px;
+}
+
+.no-resume-hint svg {
+  flex-shrink: 0;
+  color: #f59e0b;
+}
+
+.no-resume-hint span {
+  flex: 1;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: #2563eb;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.link-btn:hover {
+  background: rgba(37, 99, 235, 0.1);
+  color: #1d4ed8;
+}
+
+/* 按钮 */
+.btn {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  color: white;
+  box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
+}
+
+.btn-primary:hover:not(:disabled) {
+  box-shadow: 0 6px 12px rgba(59, 130, 246, 0.4);
+  transform: translateY(-1px);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: #6b7280;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #4b5563;
+}
+
+.btn-group {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-group .btn {
+  flex: 1;
+}
+
+/* 风格按钮 */
+.style-btn {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 12px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background: white;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.style-btn:hover {
+  border-color: #3b82f6;
+  background: #eff6ff;
+}
+
+.style-btn.active {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+
+/* 岗位信息 */
+#jobDetails p {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 4px 0;
+}
+
+#jobTitle {
+  font-weight: 500;
+  color: #111827;
+  font-size: 15px;
+}
+
+#jobSalary {
+  color: #3b82f6;
+  font-weight: 500;
+}
+
+/* 匹配结果 */
+.match-score-container {
+  margin-bottom: 16px;
+}
+
+.match-score-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.match-score-header span:first-child {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+#matchScore {
+  font-size: 18px;
+  font-weight: 700;
+  color: #3b82f6;
+}
+
+.match-bar-container {
+  width: 100%;
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.match-bar {
+  height: 100%;
+  background: #3b82f6;
+  border-radius: 999px;
+  transition: all 0.5s;
+  width: 0;
+}
+
+.match-bar.high {
+  background: #10b981;
+}
+
+.match-bar.medium {
+  background: #3b82f6;
+}
+
+.match-bar.low {
+  background: #f59e0b;
+}
+
+.match-bar.very-low {
+  background: #ef4444;
+}
+
+/* 分析文本 */
+#matchAnalysis {
+  font-size: 13px;
+  color: #4b5563;
+  background: #eff6ff;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  line-height: 1.6;
+}
+
+/* 优势和差距 */
+.strengths-section,
+.gaps-section {
+  margin-bottom: 12px;
+}
+
+.section-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.list-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+
+.list-item svg {
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.list-item.strength svg {
+  color: #10b981;
+}
+
+.list-item.gap svg {
+  color: #f59e0b;
+}
+
+/* 打招呼区域 */
+.greeting-style-selector {
+  margin-bottom: 12px;
+}
+
+.greeting-style-selector label {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.style-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+#greetingText {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 13px;
+  color: #374151;
+  margin-bottom: 12px;
+  min-height: 80px;
+  line-height: 1.6;
+}
+
+/* 加载动画 */
+.loading-container {
+  text-align: center;
+  padding: 16px;
+}
+
+.spinner {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-container p {
+  font-size: 13px;
+  color: #6b7280;
+  margin-top: 8px;
+}
+
+/* 消息提示 */
+.message {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  font-size: 13px;
+  z-index: 1000;
+  animation: slideIn 0.3s;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.message.success {
+  background: #10b981;
+  color: white;
+}
+
+.message.error {
+  background: #ef4444;
+  color: white;
+}
+
+.message.warning {
+  background: #f59e0b;
+  color: white;
+}
+
+.message.info {
+  background: #3b82f6;
+  color: white;
+}
+
+/* 简历信息 */
+#resumeInfo {
+  margin-top: 12px;
+  font-size: 13px;
+  color: #10b981;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* 间距工具类 */
+.space-y-1 > * + * {
+  margin-top: 4px;
+}
+
+.space-y-2 > * + * {
+  margin-top: 8px;
+}
+
+.space-y-3 > * + * {
+  margin-top: 12px;
+}
+
+.space-y-4 > * + * {
+  margin-top: 16px;
+}
+
+/* 文本颜色 */
+.text-gray-600 {
+  color: #4b5563;
+}
+
+.text-gray-700 {
+  color: #374151;
+}
+
+.text-green-600 {
+  color: #10b981;
+}
+
+.text-blue-600 {
+  color: #3b82f6;
+}
+
+/* 响应式 */
+@media (max-width: 720px) {
+  body {
+    width: 100%;
+  }
+}

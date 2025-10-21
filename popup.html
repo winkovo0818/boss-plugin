@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BOSS直聘招聘助手</title>
+  <link rel="stylesheet" href="popup.css">
+  <style>
+    body {
+      min-width: 680px !important;
+      width: 680px !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="gradient-header">
+    <div class="header-content">
+      <div>
+        <h1>
+          <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+          </svg>
+          BOSS直聘招聘助手
+        </h1>
+        <p>智能匹配简历与岗位</p>
+      </div>
+      <button id="settingsBtn" class="settings-btn" title="设置">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- 岗位信息 -->
+    <div id="jobInfo" class="card hidden">
+      <h2 class="card-title">
+        <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
+        当前岗位
+      </h2>
+      <div id="jobDetails" class="space-y-1">
+        <p id="jobTitle"></p>
+        <p id="jobCompany"></p>
+        <p id="jobSalary"></p>
+      </div>
+    </div>
+
+    <!-- 简历状态 -->
+    <div id="resumeStatus" class="resume-status hidden">
+      <div class="resume-status-content">
+        <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
+        <span id="resumeInfo"></span>
+      </div>
+    </div>
+    
+    <!-- 未上传简历提示 -->
+    <div id="noResumeHint" class="no-resume-hint">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="24" height="24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+      <span>请先在设置中上传简历</span>
+      <button id="goToSettingsBtn" class="link-btn">前往设置 →</button>
+    </div>
+
+    <!-- 匹配结果 -->
+    <div id="matchResult" class="card hidden">
+      <h2 class="card-title">
+        <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+        </svg>
+        匹配分析
+      </h2>
+      
+      <div class="match-score-container">
+        <div class="match-score-header">
+          <span>匹配度</span>
+          <span id="matchScore">0%</span>
+        </div>
+        <div class="match-bar-container">
+          <div id="matchBar" class="match-bar" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <div id="matchAnalysis"></div>
+
+      <div id="strengthsSection" class="strengths-section hidden">
+        <p class="section-label">您的优势：</p>
+        <div id="strengthsList"></div>
+      </div>
+
+      <div id="gapsSection" class="gaps-section hidden">
+        <p class="section-label">可提升点：</p>
+        <div id="gapsList"></div>
+      </div>
+    </div>
+
+    <!-- 打招呼语句生成 -->
+    <div id="greetingSection" class="card hidden">
+      <h2 class="card-title">
+        <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+        </svg>
+        打招呼语句
+      </h2>
+
+      <div class="greeting-style-selector">
+        <label>选择风格：</label>
+        <div class="style-buttons">
+          <button class="style-btn" data-style="casual">轻松</button>
+          <button class="style-btn" data-style="formal">正式</button>
+          <button class="style-btn" data-style="professional">专业</button>
+        </div>
+      </div>
+
+      <div id="greetingText"></div>
+
+      <div class="btn-group">
+        <button id="regenerateBtn" class="btn btn-primary">
+          重新生成
+        </button>
+        <button id="copyBtn" class="btn btn-secondary">
+          复制
+        </button>
+      </div>
+    </div>
+
+    <!-- 开始分析按钮 -->
+    <button id="analyzeBtn" class="btn btn-primary hidden">
+      开始分析匹配度
+    </button>
+
+    <!-- 加载状态 -->
+    <div id="loading" class="loading-container hidden">
+      <div class="spinner"></div>
+      <p>分析中...</p>
+    </div>
+  </div>
+
+  <script src="ai-service.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
