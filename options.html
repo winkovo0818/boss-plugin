@@ -92,66 +92,106 @@
           <h3>获取API Key</h3>
           <p id="providerInfoText"></p>
         </div>
-      </div>
 
-      <!-- 简历管理 -->
-      <div class="divider">
-        <h2 class="section-title">简历管理</h2>
-        <p class="subtitle">上传一次，多次使用</p>
-
-        <div class="form-section">
-          <label class="form-label">
-            我的简历
-            <span class="form-hint">
-              支持 PDF, DOC, DOCX, TXT 格式
-            </span>
-          </label>
-          
-          <div id="resumeUploadArea" class="upload-area-settings">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="48" height="48">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-            </svg>
-            <p class="upload-text">点击或拖拽上传简历</p>
-            <p class="upload-hint">支持 PDF, DOC, DOCX, TXT 格式，最大 5MB</p>
-          </div>
-          <input type="file" id="resumeFileInput" class="hidden" accept=".pdf,.doc,.docx,.txt">
-          
-          <div id="currentResume" class="current-resume hidden">
-            <div class="resume-info">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-              </svg>
-              <div class="resume-details">
-                <p class="resume-name" id="resumeName">未上传简历</p>
-                <p class="resume-meta" id="resumeMeta"></p>
-              </div>
-              <button id="deleteResumeBtn" class="delete-btn" title="删除简历">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- 保存按钮 -->
+        <!-- AI配置操作按钮 -->
         <div class="button-group">
-          <button 
-            id="saveBtn"
-            class="btn btn-primary"
-          >
-            保存设置
-          </button>
-          <button 
-            id="testBtn"
-            class="btn btn-secondary"
-          >
-            测试连接
-          </button>
+          <button id="saveBtn" class="btn btn-primary">保存设置</button>
+          <button id="testBtn" class="btn btn-secondary">测试连接</button>
         </div>
 
         <!-- 状态消息 -->
         <div id="statusMessage" class="status-message hidden"></div>
+      </div>
+
+      <!-- 简历管理 -->
+      <div class="divider">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">简历管理</h2>
+            <p class="subtitle" style="margin-bottom: 0;">支持多份简历，最多5份</p>
+          </div>
+          <button id="addResumeBtn" class="btn-add-resume">+ 添加简历</button>
+        </div>
+
+        <div class="form-section">
+          <div id="resumeList" class="resume-list"></div>
+          <div id="noResumes" class="empty-state hidden">
+            <p>暂无简历</p>
+          </div>
+          <input type="file" id="resumeFileInput" class="hidden" accept=".pdf,.doc,.docx,.txt">
+        </div>
+      </div>
+
+      <!-- 使用统计 -->
+      <div class="divider">
+        <h2 class="section-title">使用统计</h2>
+        <p class="subtitle">查看分析数据和使用情况</p>
+        
+        <div class="stats-row">
+          <div class="stat-item">
+            <div class="stat-value" id="totalAnalysis">0</div>
+            <div class="stat-label">总分析次数</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="averageScore">0</div>
+            <div class="stat-label">平均匹配度</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="highestScore">-</div>
+            <div class="stat-label">最高匹配岗位</div>
+            <div class="stat-detail" id="highestDetail"></div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="lowestScore">-</div>
+            <div class="stat-label">最低匹配岗位</div>
+            <div class="stat-detail" id="lowestDetail"></div>
+          </div>
+        </div>
+        
+        <!-- 分数分布 -->
+        <div class="distribution-section">
+          <h3>匹配度分布</h3>
+          <div class="distribution-item">
+            <span class="distribution-label">高匹配 (≥75分)</span>
+            <div class="distribution-bar-wrap">
+              <div class="distribution-bar high" id="highBar" style="width: 0%"></div>
+            </div>
+            <span class="distribution-count" id="highCount">0</span>
+          </div>
+          <div class="distribution-item">
+            <span class="distribution-label">中匹配 (60-74分)</span>
+            <div class="distribution-bar-wrap">
+              <div class="distribution-bar medium" id="mediumBar" style="width: 0%"></div>
+            </div>
+            <span class="distribution-count" id="mediumCount">0</span>
+          </div>
+          <div class="distribution-item">
+            <span class="distribution-label">低匹配 (<60分)</span>
+            <div class="distribution-bar-wrap">
+              <div class="distribution-bar low" id="lowBar" style="width: 0%"></div>
+            </div>
+            <span class="distribution-count" id="lowCount">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 历史记录 -->
+      <div class="divider">
+        <div class="section-header">
+          <h2 class="section-title">分析历史</h2>
+          <a id="clearHistoryBtn" class="link-quiet">清空</a>
+        </div>
+        <p class="subtitle">查看所有匹配分析记录</p>
+        
+        <div id="historyLoading" class="loading-state hidden">
+          <p>加载中...</p>
+        </div>
+        
+        <div id="historyList" class="history-container"></div>
+        
+        <div id="noHistory" class="empty-state hidden">
+          <p>暂无分析历史</p>
+        </div>
       </div>
 
       <!-- 使用说明 -->
@@ -182,6 +222,8 @@
   </div>
 
   <script src="file-parser.js"></script>
+  <script src="history-utils.js"></script>
+  <script src="stats-manager.js"></script>
   <script src="options.js"></script>
 </body>
 </html>

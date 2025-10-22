@@ -2,7 +2,9 @@
   "manifest_version": 3,
   "name": "BOSS直聘招聘助手",
   "version": "1.0.0",
-  "description": "智能匹配简历与岗位JD，生成个性化打招呼语句",
+  "description": "智能匹配简历与岗位JD，AI驱动的个性化打招呼生成工具",
+  "author": "云淡风轻 (winkovo0818)",
+  "homepage_url": "https://github.com/winkovo0818/boss-plugin",
   "permissions": [
     "activeTab",
     "storage",
@@ -21,7 +23,10 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://www.zhipin.com/job_detail/*"],
+      "matches": [
+        "https://www.zhipin.com/job_detail/*",
+        "https://www.zhipin.com/web/geek/jobs*"
+      ],
       "js": ["content.js"],
       "run_at": "document_end"
     }
@@ -34,5 +39,8 @@
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  "options_page": "options.html"
+  "options_page": "options.html",
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
 }

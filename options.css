@@ -35,7 +35,9 @@ h1 {
 
 .subtitle {
   color: #6b7280;
-  margin-bottom: 32px;
+  margin-bottom: 24px;
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 .form-section {
@@ -129,7 +131,7 @@ input[type="text"].form-control {
 .button-group {
   display: flex;
   gap: 16px;
-  padding-top: 16px;
+  margin-top: 32px;
 }
 
 .btn {
@@ -163,6 +165,15 @@ input[type="text"].form-control {
 
 .btn-secondary:hover {
   background: #4b5563;
+}
+
+.btn-sm {
+  padding: 10px 20px;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 
 .status-message {
@@ -339,4 +350,425 @@ input[type="text"].form-control {
 
 .delete-btn svg {
   display: block;
+}
+
+/* 空状态 */
+.empty-state {
+  text-align: center;
+  padding: 32px;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+/* 添加简历按钮 */
+.btn-add-resume {
+  padding: 8px 16px;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-add-resume:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+  background: #eff6ff;
+}
+
+/* 简历列表 */
+.resume-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.resume-item {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  background: white;
+  transition: all 0.2s;
+}
+
+.resume-item.is-default {
+  border-color: #3b82f6;
+  background: #eff6ff;
+}
+
+.resume-item:hover {
+  border-color: #d1d5db;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.resume-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.resume-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.resume-name {
+  font-size: 15px;
+  font-weight: 500;
+  color: #111827;
+}
+
+.badge-default {
+  background: #3b82f6;
+  color: white;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.resume-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-resume-action {
+  padding: 4px 12px;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-resume-action:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.resume-meta {
+  font-size: 13px;
+  color: #9ca3af;
+  display: flex;
+  gap: 8px;
+}
+
+/* 统计行 */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+.stat-item {
+  background: white;
+  padding: 20px;
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 8px;
+}
+
+.stat-label {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.stat-detail {
+  font-size: 12px;
+  color: #9ca3af;
+  margin-top: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 分数分布 */
+.distribution-section {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.distribution-section h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 16px;
+}
+
+.distribution-item {
+  display: grid;
+  grid-template-columns: 120px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.distribution-item:last-child {
+  margin-bottom: 0;
+}
+
+.distribution-label {
+  font-size: 14px;
+  color: #374151;
+}
+
+.distribution-bar-wrap {
+  background: #f3f4f6;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.distribution-bar {
+  height: 100%;
+  transition: width 0.5s ease;
+  min-width: 2px;
+}
+
+.distribution-bar.high {
+  background: #10b981;
+}
+
+.distribution-bar.medium {
+  background: #f59e0b;
+}
+
+.distribution-bar.low {
+  background: #ef4444;
+}
+
+.distribution-count {
+  font-size: 14px;
+  font-weight: 600;
+  color: #6b7280;
+  min-width: 24px;
+  text-align: right;
+}
+
+/* 历史记录样式 */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.section-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.btn-text {
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px 8px;
+  transition: color 0.2s;
+}
+
+.btn-text:hover {
+  color: #374151;
+}
+
+.link-quiet {
+  font-size: 14px;
+  color: #9ca3af;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.link-quiet:hover {
+  color: #ef4444;
+  text-decoration: underline;
+}
+
+.history-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.history-item {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  background: #f9fafb;
+  transition: all 0.2s;
+}
+
+.history-item:hover {
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.history-job {
+  flex: 1;
+}
+
+.history-title {
+  font-weight: 600;
+  font-size: 16px;
+  color: #111827;
+  margin-bottom: 6px;
+}
+
+.history-company {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.history-score {
+  font-size: 32px;
+  font-weight: 700;
+  color: #3b82f6;
+  text-align: right;
+  line-height: 1;
+}
+
+.history-score.high { color: #10b981; }
+.history-score.medium { color: #f59e0b; }
+.history-score.low { color: #ef4444; }
+
+.history-greeting {
+  background: white;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.8;
+  color: #374151;
+  margin: 12px 0;
+  border-left: 4px solid #3b82f6;
+}
+
+.history-strengths, .history-gaps {
+  margin: 12px 0;
+}
+
+.history-strengths h4, .history-gaps h4 {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  margin-bottom: 8px;
+}
+
+.history-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.history-tag {
+  display: inline-block;
+  padding: 4px 12px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  font-size: 13px;
+  color: #374151;
+}
+
+.history-tag.strength {
+  background: #d1fae5;
+  border-color: #6ee7b7;
+  color: #065f46;
+}
+
+.history-tag.gap {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #991b1b;
+}
+
+.history-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: #9ca3af;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.history-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.history-action-btn {
+  padding: 6px 12px;
+  font-size: 13px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.history-action-btn:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  color: #374151;
+}
+
+.no-history {
+  text-align: center;
+  padding: 48px 24px;
+  color: #9ca3af;
+}
+
+.no-history svg {
+  color: #d1d5db;
+  margin: 0 auto 16px;
+}
+
+.no-history p {
+  font-size: 15px;
+  color: #6b7280;
+}
+
+.loading-state {
+  text-align: center;
+  padding: 32px;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+.history-action-btn.delete {
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+.history-action-btn.delete:hover {
+  background: #fee2e2;
+  border-color: #dc2626;
+  color: #991b1b;
 }

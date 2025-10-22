@@ -1,4 +1,13 @@
-// 设置页面逻辑
+/**
+ * BOSS直聘招聘助手 - Options Page
+ * 
+ * @description 设置页面逻辑，管理AI配置、简历、历史记录和统计
+ * @author 云淡风轻 (winkovo0818)
+ * @contact QQ: 1026771081
+ * @github https://github.com/winkovo0818/boss-plugin
+ * @license MIT
+ * @version 1.0.0
+ */
 
 const providerModels = {
   kimi: ['moonshot-v1-8k', 'moonshot-v1-32k', 'moonshot-v1-128k'],
@@ -19,6 +28,8 @@ const providerInfo = {
 document.addEventListener('DOMContentLoaded', () => {
   loadSettings();
   loadResume();
+  loadStatistics();
+  loadHistory();
   initializeEventListeners();
 });
 
@@ -27,36 +38,23 @@ function initializeEventListeners() {
   const saveBtn = document.getElementById('saveBtn');
   const testBtn = document.getElementById('testBtn');
   const toggleApiKey = document.getElementById('toggleApiKey');
-  const resumeUploadArea = document.getElementById('resumeUploadArea');
+  const addResumeBtn = document.getElementById('addResumeBtn');
   const resumeFileInput = document.getElementById('resumeFileInput');
-  const deleteResumeBtn = document.getElementById('deleteResumeBtn');
+  const clearHistoryBtn = document.getElementById('clearHistoryBtn');
 
   aiProvider.addEventListener('change', handleProviderChange);
   saveBtn.addEventListener('click', saveSettings);
   testBtn.addEventListener('click', testConnection);
   toggleApiKey.addEventListener('click', toggleApiKeyVisibility);
   
-  // 简历上传
-  resumeUploadArea.addEventListener('click', () => resumeFileInput.click());
-  resumeFileInput.addEventListener('change', handleResumeUpload);
-  deleteResumeBtn.addEventListener('click', deleteResume);
+  // 清空历史记录
+  if (clearHistoryBtn) {
+    clearHistoryBtn.addEventListener('click', clearHistory);
+  }
   
-  // 拖拽上传
-  resumeUploadArea.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    resumeUploadArea.style.borderColor = '#3b82f6';
-  });
-  resumeUploadArea.addEventListener('dragleave', () => {
-    resumeUploadArea.style.borderColor = '';
-  });
-  resumeUploadArea.addEventListener('drop', (e) => {
-    e.preventDefault();
-    resumeUploadArea.style.borderColor = '';
-    const file = e.dataTransfer.files[0];
-    if (file) {
-      processResumeFile(file);
-    }
-  });
+  // 简历上传
+  addResumeBtn.addEventListener('click', () => resumeFileInput.click());
+  resumeFileInput.addEventListener('change', handleResumeUpload);
 }
 
 function handleProviderChange() {
@@ -172,9 +170,107 @@ function showMessage(message, type = 'info') {
 
 // 简历管理相关函数
 async function loadResume() {
-  chrome.storage.local.get(['currentResume'], (result) => {
-    if (result.currentResume) {
-      displayResume(result.currentResume);
+  // 读取旧的currentResume和新的resumes数组
+  chrome.storage.local.get(['currentResume', 'resumes'], (result) => {
+    let resumes = result.resumes || [];
+    
+    // 迁移旧数据：如果有currentResume但resumes为空，自动迁移
+    if (result.currentResume && resumes.length === 0) {
+      const oldResume = {
+        id: Date.now(),
+        name: result.currentResume.filename || '我的简历',
+        filename: result.currentResume.filename,
+        content: result.currentResume.content,
+        fileSize: result.currentResume.fileSize,
+        uploadedAt: result.currentResume.uploadedAt || new Date().toISOString(),
+        parseMethod: result.currentResume.parseMethod || 'local-text',
+        isDefault: true
+      };
+      resumes = [oldResume];
+      // 保存迁移后的数据
+      chrome.storage.local.set({ resumes });
+    }
+    
+    displayResumeList(resumes);
+  });
+}
+
+// 显示简历列表
+function displayResumeList(resumes) {
+  const resumeList = document.getElementById('resumeList');
+  const noResumes = document.getElementById('noResumes');
+  
+  if (resumes.length === 0) {
+    resumeList.classList.add('hidden');
+    noResumes.classList.remove('hidden');
+    return;
+  }
+  
+  resumeList.classList.remove('hidden');
+  noResumes.classList.add('hidden');
+  
+  resumeList.innerHTML = resumes.map(resume => `
+    <div class="resume-item ${resume.isDefault ? 'is-default' : ''}">
+      <div class="resume-header">
+        <div class="resume-info">
+          <span class="resume-name">${resume.name}</span>
+          ${resume.isDefault ? '<span class="badge-default">默认</span>' : ''}
+        </div>
+        <div class="resume-actions">
+          ${!resume.isDefault ? `<button class="btn-resume-action" onclick="setDefaultResume(${resume.id})">设为默认</button>` : ''}
+          <button class="btn-resume-action" onclick="deleteResume(${resume.id})">删除</button>
+        </div>
+      </div>
+      <div class="resume-meta">
+        <span>${(resume.fileSize / 1024).toFixed(1)} KB</span>
+        <span>•</span>
+        <span>${new Date(resume.uploadedAt).toLocaleDateString('zh-CN')}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+// 设置默认简历
+async function setDefaultResume(resumeId) {
+  chrome.storage.local.get(['resumes'], (result) => {
+    const resumes = result.resumes || [];
+    resumes.forEach(r => r.isDefault = (r.id === resumeId));
+    
+    const defaultResume = resumes.find(r => r.isDefault);
+    chrome.storage.local.set({ 
+      resumes,
+      currentResume: defaultResume 
+    }, () => {
+      displayResumeList(resumes);
+      showMessage('已设为默认简历', 'success');
+    });
+  });
+}
+
+// 删除简历
+async function deleteResume(resumeId) {
+  if (!confirm('确定要删除这份简历吗？')) return;
+  
+  chrome.storage.local.get(['resumes'], (result) => {
+    let resumes = result.resumes || [];
+    const deletedResume = resumes.find(r => r.id === resumeId);
+    resumes = resumes.filter(r => r.id !== resumeId);
+    
+    // 如果删除的是默认简历，将第一份设为默认
+    if (deletedResume.isDefault && resumes.length > 0) {
+      resumes[0].isDefault = true;
+      chrome.storage.local.set({ 
+        resumes,
+        currentResume: resumes[0]
+      }, () => {
+        displayResumeList(resumes);
+        showMessage('简历已删除', 'success');
+      });
+    } else {
+      chrome.storage.local.set({ resumes }, () => {
+        displayResumeList(resumes);
+        showMessage('简历已删除', 'success');
+      });
     }
   });
 }
@@ -218,34 +314,44 @@ async function processResumeFile(file) {
     const result = await parseResume(file, config);
     
     if (result.success) {
-      const resumeData = {
-        filename: result.filename,
-        content: result.content,
-        uploadedAt: new Date().toISOString(),
-        parseMethod: result.method,
-        fileSize: file.size
-      };
-      
-      // 保存到本地存储
-      chrome.storage.local.set({ currentResume: resumeData }, () => {
-        showMessage('简历上传成功', 'success');
-        displayResume(resumeData);
-      });
-    } else {
-      if (result.needsKimi) {
-        showMessage(result.content, 'warning');
-        // 仍然保存，但标记需要更好的解析
-        const resumeData = {
+      // 添加到简历列表
+      chrome.storage.local.get(['resumes'], (storage) => {
+        const resumes = storage.resumes || [];
+        
+        // 检查是否达到上限
+        if (resumes.length >= 5) {
+          showMessage('最多只能上传5份简历', 'error');
+          return;
+        }
+        
+        const newResume = {
+          id: Date.now(),
+          name: result.filename,
           filename: result.filename,
           content: result.content,
           uploadedAt: new Date().toISOString(),
           parseMethod: result.method,
           fileSize: file.size,
-          needsBetterParsing: true
+          isDefault: resumes.length === 0 // 第一份设为默认
         };
-        chrome.storage.local.set({ currentResume: resumeData }, () => {
-          displayResume(resumeData);
+        
+        resumes.push(newResume);
+        
+        // 如果是第一份简历，同时设置为currentResume
+        const updates = { resumes };
+        if (newResume.isDefault) {
+          updates.currentResume = newResume;
+        }
+        
+        chrome.storage.local.set(updates, () => {
+          showMessage('简历上传成功', 'success');
+          displayResumeList(resumes);
+          document.getElementById('resumeFileInput').value = '';
         });
+      });
+    } else {
+      if (result.needsKimi) {
+        showMessage(result.content, 'warning');
       } else {
         showMessage('简历解析失败：' + result.content, 'error');
       }
@@ -256,29 +362,98 @@ async function processResumeFile(file) {
   }
 }
 
-function displayResume(resumeData) {
-  const currentResume = document.getElementById('currentResume');
-  const resumeName = document.getElementById('resumeName');
-  const resumeMeta = document.getElementById('resumeMeta');
+
+// 加载历史记录
+function loadHistory() {
+  const historyLoading = document.getElementById('historyLoading');
+  const historyList = document.getElementById('historyList');
+  const noHistory = document.getElementById('noHistory');
   
-  resumeName.textContent = resumeData.filename;
+  // 显示加载状态
+  historyLoading.classList.remove('hidden');
+  historyList.classList.add('hidden');
+  noHistory.classList.add('hidden');
   
-  const uploadDate = new Date(resumeData.uploadedAt).toLocaleDateString('zh-CN');
-  const fileSize = (resumeData.fileSize / 1024).toFixed(1) + ' KB';
-  const parseMethod = resumeData.parseMethod === 'kimi' ? 'Kimi解析' : 
-                      resumeData.parseMethod === 'local-text' ? '本地解析' : '已解析';
-  
-  resumeMeta.textContent = `${uploadDate} · ${fileSize} · ${parseMethod}`;
-  
-  currentResume.classList.remove('hidden');
+  chrome.storage.local.get(['history'], (result) => {
+    // 隐藏加载状态
+    historyLoading.classList.add('hidden');
+    
+    const history = result.history || [];
+    
+    if (history.length === 0) {
+      historyList.classList.add('hidden');
+      noHistory.classList.remove('hidden');
+      return;
+    }
+    
+    historyList.classList.remove('hidden');
+    noHistory.classList.add('hidden');
+    
+    // 使用DocumentFragment优化性能（减少DOM操作）
+    renderHistoryList(history, historyList);
+  });
 }
 
-function deleteResume() {
-  if (confirm('确定要删除已上传的简历吗？')) {
-    chrome.storage.local.remove(['currentResume'], () => {
-      document.getElementById('currentResume').classList.add('hidden');
-      document.getElementById('resumeFileInput').value = '';
-      showMessage('简历已删除', 'success');
+// 删除单个历史记录
+function deleteHistoryItem(timestamp) {
+  if (!confirm('确定要删除这条历史记录吗？')) return;
+  
+  chrome.storage.local.get(['history'], (result) => {
+    let history = result.history || [];
+    history = history.filter(item => item.timestamp !== timestamp);
+    
+    chrome.storage.local.set({ history }, () => {
+      showMessage('已删除', 'success');
+      loadHistory(); // 重新加载历史记录
+      loadStatistics(); // 更新统计数据
+    });
+  });
+}
+
+// 加载统计数据
+async function loadStatistics() {
+  const stats = await getStatistics();
+  
+  // 总分析次数
+  document.getElementById('totalAnalysis').textContent = stats.totalAnalysis;
+  
+  // 平均匹配度
+  document.getElementById('averageScore').textContent = stats.averageScore;
+  
+  // 最高匹配
+  if (stats.highestMatch) {
+    document.getElementById('highestScore').textContent = stats.highestMatch.score;
+    document.getElementById('highestDetail').textContent = 
+      `${stats.highestMatch.title} - ${stats.highestMatch.company}`;
+  }
+  
+  // 最低匹配
+  if (stats.lowestMatch) {
+    document.getElementById('lowestScore').textContent = stats.lowestMatch.score;
+    document.getElementById('lowestDetail').textContent = 
+      `${stats.lowestMatch.title} - ${stats.lowestMatch.company}`;
+  }
+  
+  // 分数分布
+  const total = stats.totalAnalysis || 1;
+  const { high, medium, low } = stats.scoreDistribution;
+  
+  document.getElementById('highCount').textContent = high;
+  document.getElementById('mediumCount').textContent = medium;
+  document.getElementById('lowCount').textContent = low;
+  
+  document.getElementById('highBar').style.width = `${(high / total * 100)}%`;
+  document.getElementById('mediumBar').style.width = `${(medium / total * 100)}%`;
+  document.getElementById('lowBar').style.width = `${(low / total * 100)}%`;
+}
+
+// 清空历史记录
+function clearHistory() {
+  if (confirm('确定要清空所有历史记录吗？')) {
+    chrome.storage.local.set({ history: [] }, () => {
+      loadHistory();
+      loadStatistics(); // 同时刷新统计
+      showMessage('历史记录已清空', 'success');
     });
   }
 }
