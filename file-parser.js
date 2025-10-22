@@ -5,11 +5,17 @@
  */
 async function parseFileWithKimi(file, apiKey) {
   try {
+    console.log('开始上传文件到Kimi...');
+    
     // 1. 上传文件到Kimi
     const fileObject = await uploadFileToKimi(file, apiKey);
+    console.log('文件上传成功，文件ID:', fileObject.id);
     
     // 2. 获取文件内容
+    console.log('开始获取文件内容...');
     const fileContent = await getKimiFileContent(fileObject.id, apiKey);
+    console.log('文件内容获取成功，长度:', fileContent.length);
+    console.log('内容预览:', fileContent.substring(0, 200));
     
     return {
       success: true,
@@ -19,6 +25,7 @@ async function parseFileWithKimi(file, apiKey) {
     };
   } catch (error) {
     console.error('Kimi文件解析失败:', error);
+    console.error('错误详情:', error.message);
     throw error;
   }
 }
@@ -61,7 +68,21 @@ async function getKimiFileContent(fileId, apiKey) {
     throw new Error(`获取文件内容失败: ${response.statusText}`);
   }
 
-  return await response.text();
+  const text = await response.text();
+  
+  // 尝试解析JSON格式（Kimi可能返回JSON格式的内容）
+  try {
+    const jsonData = JSON.parse(text);
+    if (jsonData.content) {
+      console.log('📄 解析JSON格式的Kimi响应');
+      return jsonData.content;
+    }
+  } catch (e) {
+    // 不是JSON格式，直接返回文本
+    console.log('📄 直接返回文本格式');
+  }
+  
+  return text;
 }
 
 /**
@@ -206,6 +227,12 @@ async function readDocFile(file) {
  * 智能文件解析 - 根据配置选择最佳方案
  */
 async function parseResume(file, config = {}) {
+  console.log('=== 开始文件解析 ===');
+  console.log('文件名:', file.name);
+  console.log('文件类型:', file.type);
+  console.log('文件大小:', file.size);
+  console.log('解析配置:', config);
+  
   const { useKimi = false, kimiApiKey = '', aiProvider = 'none' } = config;
 
   try {
@@ -222,7 +249,9 @@ async function parseResume(file, config = {}) {
     }
 
     // 否则使用本地解析
-    console.log('使用本地方法解析文件...');
+    console.log('未配置Kimi API，使用本地方法解析文件...');
+    console.log('   aiProvider:', aiProvider);
+    console.log('   kimiApiKey:', kimiApiKey ? '已配置' : '未配置');
     return await parseFileLocally(file);
 
   } catch (error) {
@@ -230,8 +259,10 @@ async function parseResume(file, config = {}) {
     
     // 降级到本地解析
     try {
+      console.log('尝试降级到本地解析...');
       return await parseFileLocally(file);
     } catch (localError) {
+      console.error('本地解析也失败:', localError);
       return {
         success: false,
         content: `文件解析失败: ${error.message}`,
@@ -249,11 +280,13 @@ async function getFileParseConfig() {
   return new Promise((resolve) => {
     chrome.storage.local.get(['aiConfig'], (result) => {
       const config = result.aiConfig || {};
-      resolve({
+      const parseConfig = {
         useKimi: config.provider === 'kimi',
         kimiApiKey: config.apiKey || '',
         aiProvider: config.provider || 'none'
-      });
+      };
+      console.log('📝 读取文件解析配置:', parseConfig);
+      resolve(parseConfig);
     });
   });
 }

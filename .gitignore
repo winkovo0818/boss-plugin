@@ -1,0 +1,94 @@
+# BOSS直聘招聘助手 - Git忽略文件
+
+# 依赖目录
+node_modules/
+bower_components/
+
+# 日志文件（运行时日志）
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+debug.log
+error.log
+
+# 开发日志目录（不上传到Git）
+logs/
+
+# 操作系统文件
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# IDE和编辑器配置
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.settings/
+.classpath
+
+# 临时文件
+*.tmp
+*.temp
+*.bak
+*.cache
+.cache/
+
+# 构建输出
+dist/
+build/
+out/
+*.zip
+*.crx
+*.pem
+
+# 环境变量和配置
+.env
+.env.local
+.env.*.local
+config.local.js
+
+# 测试覆盖率
+coverage/
+.nyc_output/
+
+# 打包文件（发布时生成）
+*.crx
+*.pem
+release/
+
+# 用户数据（Chrome扩展本地存储）
+# 注意：这些文件不应该提交到仓库
+user-data/
+storage/
+
+# API密钥（如果有配置文件）
+api-keys.json
+secrets.json
+
+# 调试文件
+debug.log
+error.log
+
+# macOS
+.AppleDouble
+.LSOverride
+
+# Windows
+[Dd]esktop.ini
+$RECYCLE.BIN/
+
+# Linux
+.directory
+
+# 备份文件
+*.backup
+*.orig
