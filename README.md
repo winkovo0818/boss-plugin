@@ -157,10 +157,10 @@
 ### 🎯 界面预览
 
 ![插件主界面](images/plugin-main.png)
-*插件主界面 - 一键分析匹配度*
+*插件主界面
 
 ![匹配度分析](images/matching-analysis.png)
-*智能匹配分析报告 - 0-100分精准评估*
+*智能匹配分析报告*
 
 ![AI设置页面](images/setting.png)
 * AI设置页面  - 选择AI服务
