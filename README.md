@@ -162,7 +162,7 @@
 ![匹配度分析](images/matching-analysis.png)
 *智能匹配分析报告 - 0-100分精准评估*
 
-！[AI设置页面](images/setting.png)
+![AI设置页面](images/setting.png)
 * AI设置页面  - 选择AI服务
 
 ![使用统计](images/stats.png)
