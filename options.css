@@ -1,5 +1,160 @@
 /* 设置页面样式 */
 
+/* 上传进度条 */
+.upload-progress {
+  background: #f5f7fa;
+  border: 1px solid #e4e7ed;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+#progressText {
+  color: #606266;
+  font-weight: 500;
+}
+
+#progressPercent {
+  color: #00a870;
+  font-weight: 600;
+}
+
+.progress-bar-container {
+  width: 100%;
+  height: 8px;
+  background: #e4e7ed;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #00a870 0%, #00d68f 100%);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+/* 简历预览区域 */
+.resume-preview {
+  background: #ffffff;
+  border: 1px solid #e4e7ed;
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.preview-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #303133;
+}
+
+.btn-close {
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: #909399;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.btn-close:hover {
+  background: #f5f7fa;
+  color: #606266;
+}
+
+.preview-info {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: #f5f7fa;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.preview-info span {
+  color: #606266;
+}
+
+.preview-info span::before {
+  content: '📄 ';
+}
+
+.preview-info span:nth-child(2)::before {
+  content: '💾 ';
+}
+
+.preview-info span:nth-child(3)::before {
+  content: '📏 ';
+}
+
+.preview-content {
+  background: #fafafa;
+  border: 1px solid #e4e7ed;
+  border-radius: 6px;
+  padding: 16px;
+  font-size: 14px;
+  line-height: 1.8;
+  color: #303133;
+  max-height: 300px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-family: 'Consolas', 'Monaco', monospace;
+}
+
+.preview-content.expanded {
+  max-height: none;
+}
+
+.preview-actions {
+  margin-top: 12px;
+  text-align: center;
+}
+
+.btn-secondary {
+  padding: 8px 20px;
+  background: #f5f7fa;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  color: #606266;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+  background: #ecf5ff;
+  border-color: #00a870;
+  color: #00a870;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;

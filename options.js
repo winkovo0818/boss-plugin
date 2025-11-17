@@ -9,21 +9,7 @@
  * @version 1.0.0
  */
 
-const providerModels = {
-  kimi: ['moonshot-v1-8k', 'moonshot-v1-32k', 'moonshot-v1-128k'],
-  openai: ['gpt-3.5-turbo', 'gpt-4', 'gpt-4-turbo'],
-  claude: ['claude-3-opus-20240229', 'claude-3-sonnet-20240229', 'claude-3-haiku-20240307'],
-  zhipu: ['glm-4', 'glm-3-turbo'],
-  qwen: ['qwen-turbo', 'qwen-plus', 'qwen-max']
-};
-
-const providerInfo = {
-  kimi: '访问 https://platform.moonshot.cn/console/api-keys 获取API Key',
-  openai: '访问 https://platform.openai.com/api-keys 获取API Key',
-  claude: '访问 https://console.anthropic.com/settings/keys 获取API Key',
-  zhipu: '访问 https://open.bigmodel.cn/usercenter/apikeys 获取API Key',
-  qwen: '访问 https://dashscope.console.aliyun.com/apiKey 获取API Key'
-};
+// AI配置已简化，不再区分服务提供商
 
 document.addEventListener('DOMContentLoaded', () => {
   loadSettings();
@@ -34,15 +20,15 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initializeEventListeners() {
-  const aiProvider = document.getElementById('aiProvider');
   const saveBtn = document.getElementById('saveBtn');
   const testBtn = document.getElementById('testBtn');
   const toggleApiKey = document.getElementById('toggleApiKey');
   const addResumeBtn = document.getElementById('addResumeBtn');
   const resumeFileInput = document.getElementById('resumeFileInput');
   const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+  const closePreview = document.getElementById('closePreview');
+  const togglePreviewBtn = document.getElementById('togglePreviewBtn');
 
-  aiProvider.addEventListener('change', handleProviderChange);
   saveBtn.addEventListener('click', saveSettings);
   testBtn.addEventListener('click', testConnection);
   toggleApiKey.addEventListener('click', toggleApiKeyVisibility);
@@ -55,40 +41,13 @@ function initializeEventListeners() {
   // 简历上传
   addResumeBtn.addEventListener('click', () => resumeFileInput.click());
   resumeFileInput.addEventListener('change', handleResumeUpload);
-}
-
-function handleProviderChange() {
-  const provider = document.getElementById('aiProvider').value;
-  const apiKeySection = document.getElementById('apiKeySection');
-  const baseUrlSection = document.getElementById('baseUrlSection');
-  const modelSection = document.getElementById('modelSection');
-  const providerInfoDiv = document.getElementById('providerInfo');
-  const providerInfoText = document.getElementById('providerInfoText');
-  const aiModel = document.getElementById('aiModel');
-
-  if (provider === 'none') {
-    apiKeySection.classList.add('hidden');
-    baseUrlSection.classList.add('hidden');
-    modelSection.classList.add('hidden');
-    providerInfoDiv.classList.add('hidden');
-  } else {
-    apiKeySection.classList.remove('hidden');
-    baseUrlSection.classList.remove('hidden');
-    modelSection.classList.remove('hidden');
-    providerInfoDiv.classList.remove('hidden');
-    
-    providerInfoText.textContent = providerInfo[provider] || '';
-    
-    // 更新模型建议列表
-    const modelList = document.getElementById('modelList');
-    modelList.innerHTML = '';
-    if (providerModels[provider]) {
-      providerModels[provider].forEach(model => {
-        const option = document.createElement('option');
-        option.value = model;
-        modelList.appendChild(option);
-      });
-    }
+  
+  // 简历预览
+  if (closePreview) {
+    closePreview.addEventListener('click', hideResumePreview);
+  }
+  if (togglePreviewBtn) {
+    togglePreviewBtn.addEventListener('click', togglePreviewExpand);
   }
 }
 
@@ -96,19 +55,15 @@ function loadSettings() {
   chrome.storage.local.get(['aiConfig'], (result) => {
     if (result.aiConfig) {
       const config = result.aiConfig;
-      document.getElementById('aiProvider').value = config.provider || 'none';
       document.getElementById('apiKey').value = config.apiKey || '';
       document.getElementById('baseUrl').value = config.baseURL || '';
       document.getElementById('aiModel').value = config.model || '';
-      
-      handleProviderChange();
     }
   });
 }
 
 function saveSettings() {
   const config = {
-    provider: document.getElementById('aiProvider').value,
     apiKey: document.getElementById('apiKey').value,
     baseURL: document.getElementById('baseUrl').value,
     model: document.getElementById('aiModel').value
@@ -120,16 +75,16 @@ function saveSettings() {
 }
 
 async function testConnection() {
-  const provider = document.getElementById('aiProvider').value;
-  
-  if (provider === 'none') {
-    showMessage('未选择AI服务提供商', 'warning');
-    return;
-  }
-
   const apiKey = document.getElementById('apiKey').value;
+  const baseURL = document.getElementById('baseUrl').value;
+  
   if (!apiKey) {
     showMessage('请输入API Key', 'error');
+    return;
+  }
+  
+  if (!baseURL) {
+    showMessage('请输入API Base URL', 'error');
     return;
   }
 
@@ -210,15 +165,16 @@ function displayResumeList(resumes) {
   noResumes.classList.add('hidden');
   
   resumeList.innerHTML = resumes.map(resume => `
-    <div class="resume-item ${resume.isDefault ? 'is-default' : ''}">
+    <div class="resume-item ${resume.isDefault ? 'is-default' : ''}" data-resume-id="${resume.id}">
       <div class="resume-header">
         <div class="resume-info">
           <span class="resume-name">${resume.name}</span>
           ${resume.isDefault ? '<span class="badge-default">默认</span>' : ''}
         </div>
         <div class="resume-actions">
-          ${!resume.isDefault ? `<button class="btn-resume-action" onclick="setDefaultResume(${resume.id})">设为默认</button>` : ''}
-          <button class="btn-resume-action" onclick="deleteResume(${resume.id})">删除</button>
+          <button class="btn-resume-action" data-action="preview">预览</button>
+          ${!resume.isDefault ? `<button class="btn-resume-action" data-action="setDefault">设为默认</button>` : ''}
+          <button class="btn-resume-action" data-action="delete">删除</button>
         </div>
       </div>
       <div class="resume-meta">
@@ -228,6 +184,49 @@ function displayResumeList(resumes) {
       </div>
     </div>
   `).join('');
+  
+  // 使用事件委托处理按钮点击
+  setupResumeListEvents();
+}
+
+// 设置简历列表事件委托
+function setupResumeListEvents() {
+  const resumeList = document.getElementById('resumeList');
+  
+  // 移除旧的监听器（如果有）
+  const oldListener = resumeList._clickListener;
+  if (oldListener) {
+    resumeList.removeEventListener('click', oldListener);
+  }
+  
+  // 创建新的监听器
+  const clickListener = (e) => {
+    const button = e.target.closest('.btn-resume-action');
+    if (!button) return;
+    
+    const resumeItem = button.closest('.resume-item');
+    if (!resumeItem) return;
+    
+    const resumeId = parseInt(resumeItem.dataset.resumeId);
+    const action = button.dataset.action;
+    
+    // 根据action执行相应操作
+    switch(action) {
+      case 'preview':
+        previewResume(resumeId);
+        break;
+      case 'setDefault':
+        setDefaultResume(resumeId);
+        break;
+      case 'delete':
+        deleteResume(resumeId);
+        break;
+    }
+  };
+  
+  // 保存监听器引用，方便后续移除
+  resumeList._clickListener = clickListener;
+  resumeList.addEventListener('click', clickListener);
 }
 
 // 设置默认简历
@@ -282,6 +281,123 @@ function handleResumeUpload(e) {
   }
 }
 
+// 更新进度条
+function updateProgress(percent, text) {
+  const progressBar = document.getElementById('progressBar');
+  const progressText = document.getElementById('progressText');
+  const progressPercent = document.getElementById('progressPercent');
+  
+  if (progressBar) {
+    progressBar.style.width = `${percent}%`;
+  }
+  if (progressText) {
+    progressText.textContent = text;
+  }
+  if (progressPercent) {
+    progressPercent.textContent = `${Math.round(percent)}%`;
+  }
+}
+
+// 带进度回调的文件解析
+async function parseResumeWithProgress(file, progressCallback) {
+  const fileName = file.name.toLowerCase();
+  
+  // TXT文件直接解析
+  if (fileName.endsWith('.txt')) {
+    progressCallback(20, '读取TXT文件...');
+    const result = await parseResume(file);
+    progressCallback(100, '解析完成！');
+    return result;
+  }
+  
+  // PDF文件 - 使用进度回调
+  if (fileName.endsWith('.pdf')) {
+    return await parsePDFWithProgress(file, progressCallback);
+  }
+  
+  // 其他格式
+  progressCallback(50, '解析文件...');
+  const result = await parseResume(file);
+  progressCallback(100, '完成');
+  return result;
+}
+
+// 带进度的PDF解析
+async function parsePDFWithProgress(file, progressCallback) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    
+    reader.onload = async (e) => {
+      try {
+        progressCallback(10, '读取PDF文件...');
+        const arrayBuffer = e.target.result;
+        
+        // 检查PDF.js
+        if (typeof pdfjsLib === 'undefined') {
+          throw new Error('PDF.js库未加载');
+        }
+        
+        progressCallback(20, '加载PDF文档...');
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'lib/pdf.worker.min.js';
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        const totalPages = pdf.numPages;
+        
+        progressCallback(30, `PDF共${totalPages}页，开始提取...`);
+        
+        let fullText = '';
+        
+        // 逐页提取
+        for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+          const page = await pdf.getPage(pageNum);
+          const textContent = await page.getTextContent();
+          
+          const pageText = textContent.items.map(item => item.str).join(' ');
+          fullText += pageText + '\n\n';
+          
+          // 更新进度
+          const progress = 30 + (pageNum / totalPages * 60);
+          progressCallback(progress, `正在解析第 ${pageNum}/${totalPages} 页...`);
+        }
+        
+        // 清理文本
+        progressCallback(95, '清理和格式化文本...');
+        fullText = fullText
+          .replace(/\s+/g, ' ')
+          .replace(/\n{3,}/g, '\n\n')
+          .trim();
+        
+        if (fullText && fullText.length > 50) {
+          progressCallback(100, '解析完成！');
+          resolve({
+            success: true,
+            content: fullText,
+            filename: file.name,
+            method: 'local-pdf-js-progress'
+          });
+        } else {
+          resolve({
+            success: false,
+            content: '【PDF文件解析失败】文件可能损坏或为扫描件，建议转换为TXT格式上传。',
+            filename: file.name,
+            method: 'local-pdf-failed'
+          });
+        }
+      } catch (error) {
+        console.error('PDF解析错误:', error);
+        resolve({
+          success: false,
+          content: `【PDF文件解析失败】${error.message}，建议转换为TXT格式上传。`,
+          filename: file.name,
+          method: 'local-pdf-error'
+        });
+      }
+    };
+    
+    reader.onerror = () => reject(new Error('PDF文件读取失败'));
+    reader.readAsArrayBuffer(file);
+  });
+}
+
 async function processResumeFile(file) {
   const validTypes = ['application/pdf', 'application/msword', 
                       'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 
@@ -304,16 +420,23 @@ async function processResumeFile(file) {
     return;
   }
 
-  showMessage('正在解析简历...', 'info');
+  // 显示进度条
+  const progressContainer = document.getElementById('uploadProgress');
+  const progressBar = document.getElementById('progressBar');
+  const progressText = document.getElementById('progressText');
+  const progressPercent = document.getElementById('progressPercent');
+  
+  progressContainer.classList.remove('hidden');
+  updateProgress(0, '开始解析简历...');
 
   try {
-    // 获取文件解析配置
-    const config = await getFileParseConfig();
-    
-    // 使用智能文件解析器
-    const result = await parseResume(file, config);
+    // 使用本地文件解析器（PDF.js），带进度回调
+    const result = await parseResumeWithProgress(file, (progress, text) => {
+      updateProgress(progress, text);
+    });
     
     if (result.success) {
+      updateProgress(100, '解析完成！');
       // 添加到简历列表
       chrome.storage.local.get(['resumes'], (storage) => {
         const resumes = storage.resumes || [];
@@ -344,21 +467,40 @@ async function processResumeFile(file) {
         }
         
         chrome.storage.local.set(updates, () => {
-          showMessage('简历上传成功', 'success');
+          showMessage('简历上传成功！正在显示预览...', 'success');
           displayResumeList(resumes);
           document.getElementById('resumeFileInput').value = '';
+          
+          // 延迟隐藏进度条
+          setTimeout(() => {
+            progressContainer.classList.add('hidden');
+            // 自动显示预览
+            previewResume(newResume.id);
+          }, 1500);
         });
       });
     } else {
-      if (result.needsKimi) {
-        showMessage(result.content, 'warning');
-      } else {
-        showMessage('简历解析失败：' + result.content, 'error');
-      }
+      showMessage(result.content, 'warning');
+      // 隐藏进度条
+      setTimeout(() => {
+        progressContainer.classList.add('hidden');
+      }, 2000);
     }
   } catch (error) {
     console.error('简历处理错误:', error);
-    showMessage('简历处理失败：' + error.message, 'error');
+    
+    // 使用ErrorHandler处理错误
+    if (typeof ErrorHandler !== 'undefined') {
+      const errorInfo = ErrorHandler.handle(error, '简历解析');
+      showMessage(`${errorInfo.title}<br>${errorInfo.solution}`, 'error');
+    } else {
+      showMessage('简历处理失败：' + error.message, 'error');
+    }
+    
+    // 隐藏进度条
+    setTimeout(() => {
+      progressContainer.classList.add('hidden');
+    }, 2000);
   }
 }
 
@@ -455,5 +597,75 @@ function clearHistory() {
       loadStatistics(); // 同时刷新统计
       showMessage('历史记录已清空', 'success');
     });
+  }
+}
+
+// 预览简历内容
+function previewResume(resumeId) {
+  chrome.storage.local.get(['resumes'], (result) => {
+    const resumes = result.resumes || [];
+    const resume = resumes.find(r => r.id === resumeId);
+    
+    if (!resume) {
+      showMessage('简历不存在', 'error');
+      return;
+    }
+    
+    // 显示预览区域
+    const previewContainer = document.getElementById('resumePreview');
+    const previewContent = document.getElementById('previewContent');
+    const previewFileName = document.getElementById('previewFileName');
+    const previewFileSize = document.getElementById('previewFileSize');
+    const previewContentLength = document.getElementById('previewContentLength');
+    
+    // 填充信息
+    previewFileName.textContent = resume.name || resume.filename;
+    previewFileSize.textContent = `${(resume.fileSize / 1024).toFixed(1)} KB`;
+    previewContentLength.textContent = `${resume.content.length} 字符`;
+    
+    // 显示内容（默认只显示前1000字符）
+    const maxLength = 1000;
+    if (resume.content.length > maxLength) {
+      previewContent.textContent = resume.content.substring(0, maxLength) + '\n\n... (内容已截断，点击"展开全部"查看完整内容)';
+      previewContent.dataset.fullContent = resume.content;
+      previewContent.classList.remove('expanded');
+      document.getElementById('togglePreviewBtn').textContent = '展开全部';
+    } else {
+      previewContent.textContent = resume.content;
+      previewContent.dataset.fullContent = resume.content;
+      previewContent.classList.add('expanded');
+      document.getElementById('togglePreviewBtn').style.display = 'none';
+    }
+    
+    // 显示预览区域
+    previewContainer.classList.remove('hidden');
+    
+    // 滚动到预览区域
+    previewContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+}
+
+// 关闭预览
+function hideResumePreview() {
+  const previewContainer = document.getElementById('resumePreview');
+  previewContainer.classList.add('hidden');
+}
+
+// 展开/收起预览内容
+function togglePreviewExpand() {
+  const previewContent = document.getElementById('previewContent');
+  const toggleBtn = document.getElementById('togglePreviewBtn');
+  const fullContent = previewContent.dataset.fullContent;
+  
+  if (previewContent.classList.contains('expanded')) {
+    // 收起
+    previewContent.textContent = fullContent.substring(0, 1000) + '\n\n... (内容已截断，点击"展开全部"查看完整内容)';
+    previewContent.classList.remove('expanded');
+    toggleBtn.textContent = '展开全部';
+  } else {
+    // 展开
+    previewContent.textContent = fullContent;
+    previewContent.classList.add('expanded');
+    toggleBtn.textContent = '收起';
   }
 }

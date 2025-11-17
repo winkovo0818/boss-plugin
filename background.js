@@ -10,7 +10,8 @@
  * @since 2025-10-22
  */
 
-// 导入缓存管理器和隐私过滤器
+// 导入缓存管理器、隐私过滤器和错误处理器
+importScripts('error-handler.js');
 importScripts('cache-manager.js');
 importScripts('privacy-filter.js');
 
@@ -71,8 +72,8 @@ async function calculateMatchScoreWithAI(jobData, resumeData) {
   // 获取AI配置
   const aiConfig = await getAIConfig();
   
-  if (!aiConfig || !aiConfig.apiKey || aiConfig.provider === 'none') {
-    throw new Error('未配置AI服务，请先在设置页配置API Key');
+  if (!aiConfig || !aiConfig.apiKey) {
+    throw new Error('未配置AI服务，请先在设置页配置API Key和Base URL');
   }
   
   // 使用AI分析
@@ -82,64 +83,6 @@ async function calculateMatchScoreWithAI(jobData, resumeData) {
   return aiResult;
 }
 
-// 提取关键词
-function extractKeywords(text) {
-  const commonWords = ['的', '了', '和', '是', '在', '有', '与', '等', '及', '为', '将', '以', '及', '一个', '这个', '那个'];
-  
-  // 福利/非技能词汇黑名单
-  const benefitWords = [
-    '双休', '单休', '五险', '一金', '社保', '公积金', 
-    '包住', '包吃', '年假', '调休', '周末', '法定',
-    '带薪', '补贴', '补助', '奖金', '提成', '绩效',
-    '团建', '旅游', '下午茶', '零食', '聚餐', '体检',
-    '节日', '生日', '婚假', '产假', '陪产', '年终',
-    '弹性', '福利', '氛围', '环境', '文化', '关怀'
-  ];
-  
-  const words = [];
-  
-  // 提取中文词 - 先提取2-4字的词
-  const chineseWords2 = text.match(/[\u4e00-\u9fa5]{2}/g) || [];
-  const chineseWords3 = text.match(/[\u4e00-\u9fa5]{3}/g) || [];
-  const chineseWords4 = text.match(/[\u4e00-\u9fa5]{4}/g) || [];
-  
-  // 合并并去重
-  words.push(...chineseWords2, ...chineseWords3, ...chineseWords4);
-  
-  // 对于长词组，进行细分 - 例如"北美电商数据分析师"
-  const longWords = text.match(/[\u4e00-\u9fa5]{5,}/g) || [];
-  longWords.forEach(word => {
-    // 先检查是否包含福利词，如果包含则跳过整个词
-    if (benefitWords.some(bw => word.includes(bw))) {
-      return;
-    }
-    
-    // 将长词分解为2-3字的组合
-    for (let i = 0; i <= word.length - 2; i++) {
-      words.push(word.substring(i, i + 2));
-      if (i <= word.length - 3) {
-        words.push(word.substring(i, i + 3));
-      }
-      if (i <= word.length - 4) {
-        words.push(word.substring(i, i + 4));
-      }
-    }
-  });
-  
-  // 提取英文词
-  const englishWords = text.match(/[a-zA-Z]{2,}/gi) || [];
-  words.push(...englishWords);
-  
-  // 去重、过滤常用词和福利词、限制数量
-  return [...new Set(words)]
-    .filter(w => 
-      !commonWords.includes(w) && 
-      !benefitWords.includes(w) &&
-      !benefitWords.some(bw => w.includes(bw)) &&
-      w.length >= 2
-    )
-    .slice(0, 30);
-}
 
 // 生成分析报告
 function generateAnalysis(jobData, resumeData, matchScore) {
@@ -193,6 +136,14 @@ async function analyzeMatchWithAI(jobData, resumeData, aiConfig) {
 ${jobData.description}
 
 # 候选人简历
+**请仔细阅读以下简历内容，从中提取关键信息：**
+- 教育背景（学历、专业、学校、毕业时间）
+- 工作经历（公司、职位、时间段、主要职责）
+- 项目经验（项目名称、技术栈、成果数据）
+- 技能特长（编程语言、工具、框架等）
+- 获奖荣誉（竞赛、证书、奖项等）
+
+**完整简历内容：**
 ${resumeData.content}
 
 # 评分维度（总分100分）

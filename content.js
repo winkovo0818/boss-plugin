@@ -9,6 +9,193 @@ function detectPageType() {
   return 'unknown';
 }
 
+/**
+ * 从详情页提取职位描述（多层级备选方案）
+ */
+function extractJobDescriptionFromDetail() {
+  const selectors = [
+    // 方案1: XPath（原有方案）
+    {
+      name: 'XPath定位',
+      extract: () => {
+        const element = document.evaluate(
+          '/html/body/div[1]/div[2]/div[3]/div/div[2]/div[1]/div[3]',
+          document,
+          null,
+          XPathResult.FIRST_ORDERED_NODE_TYPE,
+          null
+        ).singleNodeValue;
+        return element?.textContent?.trim() || '';
+      }
+    },
+    // 方案2: CSS类名选择器
+    {
+      name: 'CSS类名',
+      extract: () => {
+        const selectors = [
+          '.job-detail-section',
+          '.job-sec-text',
+          '.text-desc',
+          '[class*="job-detail"]',
+          '[class*="description"]'
+        ];
+        for (const selector of selectors) {
+          const element = document.querySelector(selector);
+          if (element && element.textContent.length > 100) {
+            return element.textContent.trim();
+          }
+        }
+        return '';
+      }
+    },
+    // 方案3: 语义化搜索
+    {
+      name: '语义化搜索',
+      extract: () => {
+        const keywords = ['岗位职责', '任职要求', '工作内容', '职位描述'];
+        const allDivs = document.querySelectorAll('div, section');
+        
+        for (const div of allDivs) {
+          const text = div.textContent || '';
+          const hasKeywords = keywords.some(kw => text.includes(kw));
+          
+          // 判断是否包含关键词且内容足够长
+          if (hasKeywords && text.length > 200 && text.length < 5000) {
+            // 排除导航栏等非内容区域
+            const isContent = !div.classList.contains('nav') && 
+                            !div.classList.contains('header') &&
+                            !div.classList.contains('footer');
+            if (isContent) {
+              return text.trim();
+            }
+          }
+        }
+        return '';
+      }
+    },
+    // 方案4: 标签深度优先搜索
+    {
+      name: '标签深度搜索',
+      extract: () => {
+        // 查找最可能包含职位描述的元素
+        const candidates = document.querySelectorAll('div');
+        let bestMatch = null;
+        let maxScore = 0;
+        
+        for (const candidate of candidates) {
+          const text = candidate.textContent || '';
+          const directText = Array.from(candidate.childNodes)
+            .filter(node => node.nodeType === Node.TEXT_NODE)
+            .map(node => node.textContent)
+            .join('');
+          
+          // 评分标准
+          let score = 0;
+          if (text.length > 200 && text.length < 5000) score += 10;
+          if (text.includes('岗位职责')) score += 15;
+          if (text.includes('任职要求')) score += 15;
+          if (text.includes('工作内容')) score += 10;
+          if (directText.length > 50) score += 5; // 有直接文本内容
+          
+          if (score > maxScore) {
+            maxScore = score;
+            bestMatch = candidate;
+          }
+        }
+        
+        return bestMatch?.textContent?.trim() || '';
+      }
+    }
+  ];
+  
+  // 依次尝试各个选择器
+  for (const selector of selectors) {
+    try {
+      console.log(`尝试方案: ${selector.name}`);
+      const result = selector.extract();
+      
+      if (result && result.length > 100) {
+        console.log(`✅ ${selector.name} 成功，长度: ${result.length}`);
+        return result;
+      } else {
+        console.log(`❌ ${selector.name} 失败或内容太短`);
+      }
+    } catch (e) {
+      console.warn(`${selector.name} 出错:`, e.message);
+    }
+  }
+  
+  console.warn('所有提取方案都失败了');
+  return '';
+}
+
+/**
+ * 从列表页提取职位描述（多层级备选方案）
+ */
+function extractJobDescriptionFromList() {
+  const selectors = [
+    // 方案1: XPath（原有方案）
+    {
+      name: 'XPath定位',
+      extract: () => {
+        const element = document.evaluate(
+          '/html/body/div[1]/div[2]/div[3]/div/div/div[2]/div[1]/div[2]/p',
+          document,
+          null,
+          XPathResult.FIRST_ORDERED_NODE_TYPE,
+          null
+        ).singleNodeValue;
+        return element?.textContent?.trim() || '';
+      }
+    },
+    // 方案2: CSS选择器
+    {
+      name: 'CSS选择器',
+      extract: () => {
+        const selectors = [
+          '.job-card-body .job-info',
+          '.job-detail-box p',
+          '[class*="job-detail"] p',
+          '.job-desc-text'
+        ];
+        for (const selector of selectors) {
+          const element = document.querySelector(selector);
+          if (element && element.textContent.length > 50) {
+            return element.textContent.trim();
+          }
+        }
+        return '';
+      }
+    },
+    // 方案3: 简短描述fallback
+    {
+      name: '卡片简短描述',
+      extract: () => {
+        const desc = document.querySelector('.job-card .job-desc, .info-desc');
+        return desc?.textContent?.trim() || '';
+      }
+    }
+  ];
+  
+  // 依次尝试
+  for (const selector of selectors) {
+    try {
+      console.log(`尝试方案: ${selector.name}`);
+      const result = selector.extract();
+      
+      if (result && result.length > 20) {
+        console.log(`✅ ${selector.name} 成功，长度: ${result.length}`);
+        return result;
+      }
+    } catch (e) {
+      console.warn(`${selector.name} 出错:`, e.message);
+    }
+  }
+  
+  console.warn('列表页提取失败，建议进入详情页');
+  return '';
+}
+
 // 从列表页面提取岗位信息
 function extractJobFromListItem(listItem) {
   try {
@@ -178,49 +365,19 @@ function extractJobDetails() {
     
     console.log('公司:', company);
 
-    // 提取职位描述 - 根据URL判断页面类型，使用对应的XPath
+    // 提取职位描述 - 使用多层级备选方案
     let jobDescription = '';
     const currentUrl = window.location.href;
     
     // 判断页面类型
     if (currentUrl.includes('job_detail')) {
-      // 详情页：https://www.zhipin.com/job_detail/xxx.html
-      console.log('📄 详情页模式，使用详情页XPath');
-      try {
-        const detailElement = document.evaluate(
-          '/html/body/div[1]/div[2]/div[3]/div/div[2]/div[1]/div[3]',
-          document,
-          null,
-          XPathResult.FIRST_ORDERED_NODE_TYPE,
-          null
-        ).singleNodeValue;
-        
-        if (detailElement && detailElement.textContent.length > 100) {
-          jobDescription = detailElement.textContent?.trim() || '';
-          console.log('详情页XPath提取成功，长度:', jobDescription.length);
-        }
-      } catch (e) {
-        console.log('详情页XPath提取失败:', e.message);
-      }
+      // 详情页：使用多备选方案
+      console.log('📄 详情页模式，尝试多种提取方式');
+      jobDescription = extractJobDescriptionFromDetail();
     } else if (currentUrl.includes('/web/geek/jobs')) {
-      // 列表页：https://www.zhipin.com/web/geek/jobs
-      console.log('列表页模式，使用列表页XPath');
-      try {
-        const listElement = document.evaluate(
-          '/html/body/div[1]/div[2]/div[3]/div/div/div[2]/div[1]/div[2]/p',
-          document,
-          null,
-          XPathResult.FIRST_ORDERED_NODE_TYPE,
-          null
-        ).singleNodeValue;
-        
-        if (listElement && listElement.textContent.length > 100) {
-          jobDescription = listElement.textContent?.trim() || '';
-          console.log('列表页XPath提取成功，长度:', jobDescription.length);
-        }
-      } catch (e) {
-        console.log('列表页XPath提取失败:', e.message);
-      }
+      // 列表页：使用多备选方案
+      console.log('📋 列表页模式，尝试多种提取方式');
+      jobDescription = extractJobDescriptionFromList();
     }
     
     

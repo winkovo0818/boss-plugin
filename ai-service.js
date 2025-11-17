@@ -20,14 +20,13 @@ async function analyzeWithAI(jobData, resumeData) {
 ## 岗位信息
 - 职位名称：${jobData.title}
 - 公司：${jobData.company}
-- 薪资范围：${jobData.salary}
 - 经验要求：${jobData.experience || '未注明'}
 - 学历要求：${jobData.education || '未注明'}
 - 核心技能：${jobData.skills.length > 0 ? jobData.skills.join('、') : '请查看职位描述'}
 - 详细描述：${jobData.description.substring(0, 1000)}
 
 ## 候选人简历
-${resumeData.content.substring(0, 3000)}
+${resumeData.content}
 
 ## 分析要求
 请从以下维度进行专业分析：
@@ -101,7 +100,6 @@ async function generateGreetingWithAI(jobData, resumeData, style, matchResult) {
 ## 岗位信息
 - 职位：${jobData.title}
 - 公司：${jobData.company}
-- 薪资：${jobData.salary}
 - 核心要求：${jobData.skills.slice(0, 3).join('、')}
 
 ## 候选人匹配分析

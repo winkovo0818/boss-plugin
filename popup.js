@@ -211,7 +211,14 @@ async function analyzeMatch() {
         }
       } else {
         const errorMsg = response?.error || '未知错误';
-        showMessage(`分析失败：${errorMsg}。已自动重试3次，请检查网络或API配置`, 'error');
+        
+        // 使用ErrorHandler处理错误
+        if (typeof ErrorHandler !== 'undefined') {
+          const errorInfo = ErrorHandler.handle(errorMsg, '匹配分析');
+          showMessage(`${errorInfo.title}: ${errorInfo.message}`, 'error');
+        } else {
+          showMessage(`分析失败：${errorMsg}。已自动重试3次，请检查网络或API配置`, 'error');
+        }
         
         // 显示重新分析按钮
         analyzeBtn.textContent = '重新分析';
@@ -221,7 +228,14 @@ async function analyzeMatch() {
   } catch (error) {
     loading.classList.add('hidden');
     analyzeBtn.disabled = false;
-    showMessage(`发生错误：${error.message}。请检查网络连接或API配置`, 'error');
+    
+    // 使用ErrorHandler处理错误
+    if (typeof ErrorHandler !== 'undefined') {
+      const errorInfo = ErrorHandler.handle(error, '匹配分析');
+      showMessage(`${errorInfo.title}: ${errorInfo.message}`, 'error');
+    } else {
+      showMessage(`发生错误：${error.message}。请检查网络连接或API配置`, 'error');
+    }
     
     // 显示重新分析按钮
     analyzeBtn.textContent = '重新分析';
@@ -309,7 +323,7 @@ async function generateThreeStyleGreetings(jobData, resumeData, matchResult) {
   
   console.log('AI配置:', aiConfig ? '已配置' : '未配置');
   
-  if (!aiConfig || !aiConfig.apiKey || aiConfig.provider === 'none') {
+  if (!aiConfig || !aiConfig.apiKey) {
     console.log('未配置AI，抛出异常');
     throw new Error('未配置AI');
   }
@@ -343,7 +357,14 @@ ${jobData.description}
 【候选人核心优势】
 - ${strengthsText}
 
-【完整简历】
+【候选人简历】
+请从简历中提取以下关键信息用于生成打招呼：
+- 工作年限和当前/最近的职位
+- 核心技术能力（编程语言、工具、框架）
+- 重点项目经验（2-3个最相关的，包含技术栈和成果数据）
+- 教育背景（如果是应届生或学历是加分项）
+
+**简历原文：**
 ${resumeData.content}
 
 【优秀案例参考 - 口语化版本】
@@ -530,8 +551,22 @@ async function generateAllGreetings() {
     console.error('生成失败:', error);
     loading.classList.add('hidden');
     greetingContent.classList.remove('hidden');
-    greetingText.textContent = `生成失败：${error.message}`;
-    showMessage('打招呼语句生成失败，请检查API配置', 'error');
+    
+    // 使用ErrorHandler处理错误
+    if (typeof ErrorHandler !== 'undefined') {
+      const errorInfo = ErrorHandler.handle(error, '打招呼生成');
+      greetingText.textContent = `生成失败：${errorInfo.message}`;
+      showMessage(`${errorInfo.title}: ${errorInfo.solution}`, 'error');
+      
+      // 如果错误可重试，显示重试按钮
+      if (ErrorHandler.isRetryable(error)) {
+        generateBtn.classList.remove('hidden');
+        generateBtn.textContent = '重新生成';
+      }
+    } else {
+      greetingText.textContent = `生成失败：${error.message}`;
+      showMessage('打招呼语句生成失败，请检查API配置', 'error');
+    }
   }
 }
 

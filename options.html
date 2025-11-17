@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BOSS直聘助手 - 设置</title>
   <link rel="stylesheet" href="options.css">
+  <!-- PDF.js库 - 本地版本，用于解析PDF文件 -->
+  <script src="lib/pdf.min.js"></script>
 </head>
 <body>
   <div class="container">
@@ -13,27 +15,12 @@
       <p class="subtitle">配置AI服务以获得更智能的匹配分析</p>
 
       <div>
-        <!-- AI服务商选择 -->
-        <div class="form-section">
-          <label class="form-label">
-            AI服务提供商
-          </label>
-          <select id="aiProvider" class="form-control">
-            <option value="none">不使用AI（使用本地算法）</option>
-            <option value="kimi">Kimi (Moonshot AI) - 推荐用于文件解析</option>
-            <option value="openai">OpenAI GPT</option>
-            <option value="claude">Anthropic Claude</option>
-            <option value="zhipu">智谱AI (GLM)</option>
-            <option value="qwen">通义千问</option>
-          </select>
-        </div>
-
         <!-- API Key -->
-        <div id="apiKeySection" class="form-section hidden">
+        <div class="form-section">
           <label class="form-label">
             API Key
             <span class="form-hint">
-              你的API密钥将安全存储在本地
+              你的AI API密钥（支持OpenAI、Kimi、Claude等OpenAI兼容格式）
             </span>
           </label>
           <input 
@@ -51,12 +38,12 @@
           </button>
         </div>
 
-        <!-- Base URL (可选) -->
-        <div id="baseUrlSection" class="form-section hidden">
+        <!-- Base URL -->
+        <div class="form-section">
           <label class="form-label">
-            BaseURL (可选)
+            API Base URL
             <span class="form-hint">
-              自定义API端点，如使用代理
+              API端点地址（例如：https://api.openai.com/v1 或 https://api.moonshot.cn/v1）
             </span>
           </label>
           <input 
@@ -68,29 +55,30 @@
         </div>
 
         <!-- 模型选择 -->
-        <div id="modelSection" class="form-section hidden">
+        <div class="form-section">
           <label class="form-label">
-            模型
+            模型名称
             <span class="form-hint">
-              可从列表选择或自定义输入
+              填写模型名称（例如：gpt-3.5-turbo、moonshot-v1-8k、claude-3-sonnet等）
             </span>
           </label>
           <input 
             type="text" 
             id="aiModel" 
-            list="modelList"
-            placeholder="留空使用默认模型，或输入自定义模型名称"
+            placeholder="例如: gpt-3.5-turbo"
             class="form-control"
           >
-          <datalist id="modelList">
-            <!-- 模型选项将由JS动态填充 -->
-          </datalist>
         </div>
 
         <!-- 提示信息 -->
-        <div id="providerInfo" class="info-box hidden">
-          <h3>获取API Key</h3>
-          <p id="providerInfoText"></p>
+        <div class="info-box">
+          <h3>常用API配置参考</h3>
+          <ul style="margin: 8px 0; padding-left: 20px; font-size: 13px; line-height: 1.8;">
+            <li><strong>OpenAI</strong>: https://api.openai.com/v1 (gpt-3.5-turbo, gpt-4)</li>
+            <li><strong>Kimi</strong>: https://api.moonshot.cn/v1 (moonshot-v1-8k, moonshot-v1-32k)</li>
+            <li><strong>智谱AI</strong>: https://open.bigmodel.cn/api/paas/v4 (glm-4, glm-3-turbo)</li>
+            <li><strong>通义千问</strong>: https://dashscope.aliyuncs.com/compatible-mode/v1 (qwen-turbo, qwen-plus)</li>
+          </ul>
         </div>
 
         <!-- AI配置操作按钮 -->
@@ -114,11 +102,41 @@
         </div>
 
         <div class="form-section">
+          <!-- 上传进度条 -->
+          <div id="uploadProgress" class="upload-progress hidden">
+            <div class="progress-header">
+              <span id="progressText">正在上传...</span>
+              <span id="progressPercent">0%</span>
+            </div>
+            <div class="progress-bar-container">
+              <div id="progressBar" class="progress-bar" style="width: 0%"></div>
+            </div>
+          </div>
+          
           <div id="resumeList" class="resume-list"></div>
           <div id="noResumes" class="empty-state hidden">
             <p>暂无简历</p>
           </div>
           <input type="file" id="resumeFileInput" class="hidden" accept=".pdf,.doc,.docx,.txt">
+          
+          <!-- 简历预览区域 -->
+          <div id="resumePreview" class="resume-preview hidden">
+            <div class="preview-header">
+              <h3>简历内容预览</h3>
+              <button id="closePreview" class="btn-close">×</button>
+            </div>
+            <div class="preview-info">
+              <span id="previewFileName">文件名</span>
+              <span id="previewFileSize">大小</span>
+              <span id="previewContentLength">长度</span>
+            </div>
+            <div class="preview-content" id="previewContent">
+              <!-- 简历内容 -->
+            </div>
+            <div class="preview-actions">
+              <button id="togglePreviewBtn" class="btn-secondary">展开全部</button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -199,13 +217,12 @@
         <h2 class="section-title">使用说明</h2>
         <div class="prose">
           <ul>
-            <li>选择你偏好的AI服务提供商</li>
-            <li>输入对应的API Key（需要自行申请）</li>
-            <li>模型名称可从下拉列表选择，也可以自定义输入（支持新模型或自定义模型）</li>
-            <li>Base URL可自定义，用于使用代理或自建服务</li>
+            <li>输入你的AI API Key（支持所有OpenAI兼容格式的API）</li>
+            <li>填写对应的API Base URL（参考上方常用配置）</li>
+            <li>输入模型名称（如：gpt-3.5-turbo、moonshot-v1-8k等）</li>
             <li>点击"测试连接"验证配置是否正确</li>
             <li>保存设置后即可在插件中使用AI功能</li>
-            <li>如不配置AI服务，插件将使用本地算法进行匹配分析</li>
+            <li>简历解析使用本地PDF.js库，支持PDF、Word和TXT格式</li>
           </ul>
         </div>
       </div>
@@ -221,6 +238,7 @@
     </div>
   </div>
 
+  <script src="error-handler.js"></script>
   <script src="file-parser.js"></script>
   <script src="history-utils.js"></script>
   <script src="stats-manager.js"></script>

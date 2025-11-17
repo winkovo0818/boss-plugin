@@ -1,98 +1,5 @@
-// 文件解析服务 - 支持PDF、DOC等文件的内容提取
-
-/**
- * 使用Kimi API解析文件（支持PDF、DOC、图片等）
- */
-async function parseFileWithKimi(file, apiKey) {
-  try {
-    console.log('开始上传文件到Kimi...');
-    
-    // 1. 上传文件到Kimi
-    const fileObject = await uploadFileToKimi(file, apiKey);
-    console.log('文件上传成功，文件ID:', fileObject.id);
-    
-    // 2. 获取文件内容
-    console.log('开始获取文件内容...');
-    const fileContent = await getKimiFileContent(fileObject.id, apiKey);
-    console.log('文件内容获取成功，长度:', fileContent.length);
-    console.log('内容预览:', fileContent.substring(0, 200));
-    
-    return {
-      success: true,
-      content: fileContent,
-      filename: file.name,
-      method: 'kimi'
-    };
-  } catch (error) {
-    console.error('Kimi文件解析失败:', error);
-    console.error('错误详情:', error.message);
-    throw error;
-  }
-}
-
-/**
- * 上传文件到Kimi API
- */
-async function uploadFileToKimi(file, apiKey) {
-  const formData = new FormData();
-  formData.append('file', file);
-  formData.append('purpose', 'file-extract');
-
-  const response = await fetch('https://api.moonshot.cn/v1/files', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`
-    },
-    body: formData
-  });
-
-  if (!response.ok) {
-    throw new Error(`文件上传失败: ${response.statusText}`);
-  }
-
-  return await response.json();
-}
-
-/**
- * 获取Kimi文件内容
- */
-async function getKimiFileContent(fileId, apiKey) {
-  const response = await fetch(`https://api.moonshot.cn/v1/files/${fileId}/content`, {
-    method: 'GET',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`
-    }
-  });
-
-  if (!response.ok) {
-    throw new Error(`获取文件内容失败: ${response.statusText}`);
-  }
-
-  const text = await response.text();
-  
-  // 尝试解析JSON格式（Kimi可能返回JSON格式的内容）
-  try {
-    const jsonData = JSON.parse(text);
-    if (jsonData.content) {
-      console.log('📄 解析JSON格式的Kimi响应');
-      return jsonData.content;
-    }
-  } catch (e) {
-    // 不是JSON格式，直接返回文本
-    console.log('📄 直接返回文本格式');
-  }
-  
-  return text;
-}
-
-/**
- * 使用OpenAI API解析文件（需要先转换为文本）
- */
-async function parseFileWithOpenAI(file, apiKey, baseURL) {
-  // OpenAI本身不直接支持文件提取，需要其他方式
-  // 这里使用客户端解析
-  return await parseFileLocally(file);
-}
+// 文件解析服务 - 支持PDF、DOC、TXT等文件的内容提取
+// 使用本地PDF.js库进行解析，无需调用外部API
 
 /**
  * 本地解析文件（浏览器环境）
@@ -141,43 +48,39 @@ function readTextFile(file) {
 }
 
 /**
- * 读取PDF文件（简化版）
+ * 使用PDF.js读取PDF文件
  */
 async function readPDFFile(file) {
-  // 浏览器环境中解析PDF需要PDF.js库
-  // 这里提供简化版本，建议用户使用TXT格式或配置Kimi API
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = async (e) => {
       try {
-        // 尝试提取文本（这里只是示例，实际效果有限）
         const arrayBuffer = e.target.result;
-        const text = await extractTextFromPDF(arrayBuffer);
+        const text = await extractTextFromPDFWithPDFJS(arrayBuffer);
         
         if (text && text.length > 50) {
+          console.log('PDF解析成功，内容长度:', text.length);
           resolve({
             success: true,
             content: text,
             filename: file.name,
-            method: 'local-pdf'
+            method: 'local-pdf-js'
           });
         } else {
-          // 如果提取效果不好，建议使用Kimi API
           resolve({
             success: false,
-            content: '【PDF文件】建议在设置中配置Kimi API以获得更好的PDF解析效果，或将简历转换为TXT格式上传。',
+            content: '【PDF文件解析失败】文件可能损坏或为扫描件，建议转换为TXT格式上传。',
             filename: file.name,
-            method: 'local-pdf-limited',
-            needsKimi: true
+            method: 'local-pdf-failed'
           });
         }
       } catch (error) {
+        console.error('PDF解析错误:', error);
         resolve({
           success: false,
-          content: '【PDF文件】无法完整解析，建议配置Kimi API或使用TXT格式。',
+          content: `【PDF文件解析失败】${error.message}，建议转换为TXT格式上传。`,
           filename: file.name,
-          method: 'local-pdf-failed',
-          needsKimi: true
+          method: 'local-pdf-error'
         });
       }
     };
@@ -187,24 +90,49 @@ async function readPDFFile(file) {
 }
 
 /**
- * 简单的PDF文本提取（非常基础）
+ * 使用PDF.js提取PDF文本内容
  */
-async function extractTextFromPDF(arrayBuffer) {
+async function extractTextFromPDFWithPDFJS(arrayBuffer) {
   try {
-    // 这是一个极简的PDF文本提取
-    // 实际项目应该使用PDF.js或Kimi API
-    const uint8Array = new Uint8Array(arrayBuffer);
-    const text = new TextDecoder().decode(uint8Array);
-    
-    // 提取可读文本（这个方法很粗糙）
-    const matches = text.match(/[\u4e00-\u9fa5a-zA-Z0-9\s\.,;:!?()，。；：！？（）]+/g);
-    if (matches) {
-      return matches.join(' ').substring(0, 5000); // 限制长度
+    // 检查PDF.js是否已加载
+    if (typeof pdfjsLib === 'undefined') {
+      throw new Error('PDF.js库未加载');
     }
-    return '';
+    
+    // 设置worker路径（使用本地文件）
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'lib/pdf.worker.min.js';
+    
+    // 加载PDF文档
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    console.log('PDF页数:', pdf.numPages);
+    
+    let fullText = '';
+    
+    // 遍历所有页面提取文本
+    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+      const page = await pdf.getPage(pageNum);
+      const textContent = await page.getTextContent();
+      
+      // 提取文本项
+      const pageText = textContent.items
+        .map(item => item.str)
+        .join(' ');
+      
+      fullText += pageText + '\n\n';
+    }
+    
+    // 清理文本
+    fullText = fullText
+      .replace(/\s+/g, ' ')  // 合并多余空格
+      .replace(/\n{3,}/g, '\n\n')  // 合并多余换行
+      .trim();
+    
+    console.log('PDF文本提取完成，长度:', fullText.length);
+    return fullText;
+    
   } catch (error) {
-    console.error('PDF文本提取失败:', error);
-    return '';
+    console.error('PDF.js解析失败:', error);
+    throw new Error('PDF解析失败: ' + error.message);
   }
 }
 
@@ -212,91 +140,43 @@ async function extractTextFromPDF(arrayBuffer) {
  * 读取DOC/DOCX文件（简化版）
  */
 async function readDocFile(file) {
-  // Word文档解析在浏览器中比较复杂
-  // 建议使用Kimi API或转换为TXT
+  // Word文档解析在浏览器中比较复杂，建议转换格式
   return {
     success: false,
-    content: '【Word文档】建议在设置中配置Kimi API以解析Word文档，或将简历转换为TXT/PDF格式上传。',
+    content: '【Word文档】暂不支持直接解析Word文档，请将简历转换为TXT或PDF格式上传。',
     filename: file.name,
-    method: 'local-doc-unsupported',
-    needsKimi: true
+    method: 'local-doc-unsupported'
   };
 }
 
 /**
- * 智能文件解析 - 根据配置选择最佳方案
+ * 智能文件解析 - 使用本地方法解析文件
  */
 async function parseResume(file, config = {}) {
-  console.log('=== 开始文件解析 ===');
+  console.log('=== 开始本地文件解析 ===');
   console.log('文件名:', file.name);
   console.log('文件类型:', file.type);
   console.log('文件大小:', file.size);
-  console.log('解析配置:', config);
   
-  const { useKimi = false, kimiApiKey = '', aiProvider = 'none' } = config;
-
   try {
-    // 优先使用Kimi API（如果配置了）
-    if (useKimi && kimiApiKey) {
-      console.log('使用Kimi API解析文件...');
-      return await parseFileWithKimi(file, kimiApiKey);
-    }
-
-    // 或者使用其他AI服务（如果支持文件解析）
-    if (aiProvider === 'kimi' && kimiApiKey) {
-      console.log('使用Kimi API解析文件...');
-      return await parseFileWithKimi(file, kimiApiKey);
-    }
-
-    // 否则使用本地解析
-    console.log('未配置Kimi API，使用本地方法解析文件...');
-    console.log('   aiProvider:', aiProvider);
-    console.log('   kimiApiKey:', kimiApiKey ? '已配置' : '未配置');
+    // 直接使用本地解析
+    console.log('使用本地方法解析文件（PDF.js + FileReader）...');
     return await parseFileLocally(file);
-
   } catch (error) {
     console.error('文件解析失败:', error);
-    
-    // 降级到本地解析
-    try {
-      console.log('尝试降级到本地解析...');
-      return await parseFileLocally(file);
-    } catch (localError) {
-      console.error('本地解析也失败:', localError);
-      return {
-        success: false,
-        content: `文件解析失败: ${error.message}`,
-        filename: file.name,
-        method: 'failed'
-      };
-    }
+    return {
+      success: false,
+      content: `文件解析失败: ${error.message}`,
+      filename: file.name,
+      method: 'failed'
+    };
   }
-}
-
-/**
- * 获取文件解析配置
- */
-async function getFileParseConfig() {
-  return new Promise((resolve) => {
-    chrome.storage.local.get(['aiConfig'], (result) => {
-      const config = result.aiConfig || {};
-      const parseConfig = {
-        useKimi: config.provider === 'kimi',
-        kimiApiKey: config.apiKey || '',
-        aiProvider: config.provider || 'none'
-      };
-      console.log('📝 读取文件解析配置:', parseConfig);
-      resolve(parseConfig);
-    });
-  });
 }
 
 // 导出函数
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     parseResume,
-    parseFileWithKimi,
-    parseFileLocally,
-    getFileParseConfig
+    parseFileLocally
   };
 }
