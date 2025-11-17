@@ -1,23 +1,47 @@
 <svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+    <linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#E0F2FF" />
+      <stop offset="100%" stop-color="#A5D8FF" />
     </linearGradient>
+    <linearGradient id="badge" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#60A5FA" />
+      <stop offset="100%" stop-color="#1D4ED8" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="140%" height="140%">
+      <feOffset dy="2" />
+      <feGaussianBlur stdDeviation="2" result="blur" />
+      <feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.25 0" />
+      <feBlend in2="SourceGraphic" mode="normal" />
+    </filter>
   </defs>
-  
-  <rect width="128" height="128" rx="24" fill="url(#grad1)"/>
-  
-  <path d="M64 30 L90 50 L90 90 L64 110 L38 90 L38 50 Z" 
-        fill="white" opacity="0.2" stroke="white" stroke-width="2"/>
-  
-  <circle cx="64" cy="50" r="12" fill="white"/>
-  
-  <rect x="52" y="65" width="24" height="30" rx="4" fill="white"/>
-  
-  <path d="M40 85 L52 85 M76 85 L88 85" 
-        stroke="white" stroke-width="4" stroke-linecap="round"/>
-  
-  <text x="64" y="120" font-family="Arial, sans-serif" font-size="14" 
-        fill="white" text-anchor="middle" font-weight="bold">BOSS</text>
+
+  <!-- 圆角背景 -->
+  <rect width="128" height="128" rx="26" fill="url(#bg)" />
+
+  <!-- Notion风格投影框 -->
+  <rect x="20" y="24" width="88" height="88" rx="20" fill="#F8FBFF" stroke="#93C5FD" stroke-width="2.5" filter="url(#shadow)" />
+
+  <!-- 招聘徽章 -->
+  <path d="M64 42 C70 42 84 44 86 56 C87 63 83 69 78 72 C82 75 84 80 84 86 C84 97 75 106 64 106 C53 106 44 97 44 86 C44 80 46 75 50 72 C45 69 41 63 42 56 C44 44 58 42 64 42 Z" fill="url(#badge)" />
+
+  <!-- 微笑简历 -->
+  <rect x="46" y="50" width="36" height="44" rx="8" fill="#FFFFFF" stroke="#1E3A8A" stroke-width="2.5" />
+  <rect x="56" y="46" width="16" height="8" rx="2" fill="#1E3A8A" />
+  <line x1="54" y1="64" x2="74" y2="64" stroke="#60A5FA" stroke-width="3" stroke-linecap="round" />
+  <line x1="54" y1="72" x2="70" y2="72" stroke="#BFDBFE" stroke-width="3" stroke-linecap="round" />
+  <path d="M56 84 Q64 90 72 84" stroke="#34D399" stroke-width="3" stroke-linecap="round" fill="none" />
+  <circle cx="56" cy="78" r="2.5" fill="#1D4ED8" />
+  <circle cx="72" cy="78" r="2.5" fill="#1D4ED8" />
+
+  <!-- 可爱的小星星 -->
+  <path d="M32 42 L34 46 L38 47 L34 49 L33 53 L30 50 L26 50 L29 47 L28 43 Z" fill="#3B82F6" opacity="0.7" />
+  <path d="M100 40 L101.5 44 L105 45 L102 47 L101 51 L98 48.5 L94 48 L97 45.5 L96 42 Z" fill="#60A5FA" opacity="0.7" />
+  <circle cx="96" cy="90" r="5" fill="#BFDBFE" />
+  <circle cx="30" cy="92" r="4" fill="#93C5FD" />
+
+  <!-- 招聘提示气泡 -->
+  <rect x="68" y="28" width="30" height="18" rx="8" fill="#1E3A8A" />
+  <polygon points="78,46 82,46 80,52" fill="#1E3A8A" />
+  <text x="83" y="41" font-family="'Segoe UI','Microsoft YaHei',sans-serif" font-size="9" fill="#FFFFFF" text-anchor="middle">HIRE</text>
 </svg>

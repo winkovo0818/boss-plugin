@@ -12,9 +12,6 @@ yarn-error.log*
 debug.log
 error.log
 
-# 开发日志目录（不上传到Git）
-logs/
-
 # 操作系统文件
 .DS_Store
 .DS_Store?
