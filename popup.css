@@ -604,6 +604,28 @@ body {
 .history-score.medium { color: #f59e0b; }
 .history-score.low { color: #ef4444; }
 
+.history-jd {
+  margin: 8px 0;
+}
+
+.history-jd h4 {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+
+.history-jd-content {
+  background: #f9fafb;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #4b5563;
+  max-height: 100px;
+  overflow-y: auto;
+  border-left: 3px solid #9ca3af;
+}
+
 .history-greeting {
   background: white;
   padding: 10px;

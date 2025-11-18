@@ -92,6 +92,23 @@ function renderHistoryItem(record) {
     item.appendChild(gapsDiv);
   }
   
+  // JD内容
+  if (record.description) {
+    const jdDiv = document.createElement('div');
+    jdDiv.className = 'history-jd';
+    
+    const jdTitle = document.createElement('h4');
+    jdTitle.textContent = '岗位JD';
+    jdDiv.appendChild(jdTitle);
+    
+    const jdContent = document.createElement('div');
+    jdContent.className = 'history-jd-content';
+    jdContent.textContent = record.description;
+    jdDiv.appendChild(jdContent);
+    
+    item.appendChild(jdDiv);
+  }
+  
   // 打招呼内容
   if (record.greeting) {
     const greetingDiv = document.createElement('div');

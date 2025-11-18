@@ -811,6 +811,29 @@ input[type="text"].form-control {
 .history-score.medium { color: #f59e0b; }
 .history-score.low { color: #ef4444; }
 
+.history-jd {
+  margin: 12px 0;
+}
+
+.history-jd h4 {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  margin-bottom: 8px;
+}
+
+.history-jd-content {
+  background: #f9fafb;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: #4b5563;
+  max-height: 120px;
+  overflow-y: auto;
+  border-left: 4px solid #9ca3af;
+}
+
 .history-greeting {
   background: white;
   padding: 12px;

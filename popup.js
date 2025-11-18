@@ -346,7 +346,6 @@ async function generateThreeStyleGreetings(jobData, resumeData, matchResult) {
 职位：${jobData.title}
 公司：${jobData.company}
 JD内容：${jobData.description}
-
 【候选人优势】
 ${strengthsText}
 
@@ -472,7 +471,7 @@ async function callAIAPI(prompt, aiConfig) {
         model: aiConfig.model,
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.7,
-        max_tokens: 5000
+        max_tokens: 8000
       })
     });
     
@@ -646,6 +645,7 @@ function saveToHistory(jobData, matchScore, strengths, gaps, greeting) {
       id: Date.now(),
       company: jobData.company,
       title: jobData.title,
+      description: jobData.description, // 保存JD内容
       score: matchScore,
       strengths: strengths,
       gaps: gaps,
